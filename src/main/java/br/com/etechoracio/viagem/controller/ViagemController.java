@@ -1,6 +1,6 @@
 package br.com.etechoracio.viagem.controller;
 
-
+//Ana Carolina e Kaleb
 import br.com.etechoracio.viagem.entity.Viagem;
 import br.com.etechoracio.viagem.repository.ViagemRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,8 +18,11 @@ public class ViagemController {
     private ViagemRepository repository;
 
     @GetMapping
-    public List<Viagem> buscarTodos(){
-        return repository.findAll();
+    public List<Viagem> buscarTodos(@RequestParam(required = false) String destino){
+        if(destino==null)
+            return repository.findAll();
+        else
+            return repository.findByDestino(destino);
     }
 
     @GetMapping("/{id}")
@@ -42,7 +45,7 @@ public class ViagemController {
     public ResponseEntity<Viagem> atualizar(@PathVariable Long id,
                             @RequestBody Viagem obj){
         Optional<Viagem> existe = repository.findById(id);
-        if(exste.isPresent()){
+        if(existe.isPresent()){
             repository.save(obj);
             return ResponseEntity.ok(obj);
         }
