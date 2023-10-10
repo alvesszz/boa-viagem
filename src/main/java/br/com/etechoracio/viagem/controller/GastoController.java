@@ -1,11 +1,16 @@
+//allan e Fabia
 package br.com.etechoracio.viagem.controller;
 
 import br.com.etechoracio.viagem.entity.Gasto;
+import br.com.etechoracio.viagem.entity.Viagem;
+import br.com.etechoracio.viagem.exceptions.ViagemInvalidaException;
 import br.com.etechoracio.viagem.repository.GastoRepository;
+import br.com.etechoracio.viagem.repository.ViagemRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,6 +21,9 @@ public class GastoController {
 
     @Autowired
     private GastoRepository repository;
+
+    @Autowired
+    private ViagemRepository viagemRepository;
 
     @GetMapping
     public List<Gasto> listarTodos() {
@@ -42,6 +50,16 @@ public class GastoController {
         if (existe.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
+      if  (existe.get().getDataGasto().isAfter(LocalDate.now())){
+            throw new ViagemInvalidaException("Viagem finalizada não permite inclusão de gastos");
+        }
+
+        Optional<Viagem> existeViagem = viagemRepository.findById(gasto.getViagem().getId());
+
+        if(existeViagem.get().getDataSaida() != null){
+            throw new ViagemInvalidaException("Viagem finalizada não permite atualização");
+        }
+
         Gasto salva = repository.save(gasto);
         return ResponseEntity.ok(salva);
     }

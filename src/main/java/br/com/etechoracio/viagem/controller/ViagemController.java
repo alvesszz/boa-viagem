@@ -1,8 +1,10 @@
+//allan e Fabia
 package br.com.etechoracio.viagem.controller;
 
-//Ana Carolina e Kaleb
+
 import br.com.etechoracio.viagem.entity.Gasto;
 import br.com.etechoracio.viagem.entity.Viagem;
+import br.com.etechoracio.viagem.exceptions.ViagemInvalidaException;
 import br.com.etechoracio.viagem.repository.ViagemRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -50,8 +52,8 @@ public class ViagemController {
         if(existe.isEmpty()){
             return ResponseEntity.notFound().build();
         }
-        if(existe.get().getDataSaida().isAfter(LocalDate.now())){
-            throw new IllegalArgumentException("Edição não permitida para viagens encerradas");
+        if(existe.get().getDataSaida()!= null){
+            throw new ViagemInvalidaException("Viagem finalizada não permite atualização");
         }
         Viagem salva = repository.save(viagem);
         return ResponseEntity.ok(salva);
