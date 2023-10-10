@@ -1,12 +1,14 @@
 package br.com.etechoracio.viagem.controller;
 
 //Ana Carolina e Kaleb
+import br.com.etechoracio.viagem.entity.Gasto;
 import br.com.etechoracio.viagem.entity.Viagem;
 import br.com.etechoracio.viagem.repository.ViagemRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,7 +24,7 @@ public class ViagemController {
         if(destino==null)
             return repository.findAll();
         else
-            return repository.findByDestino(destino);
+            return repository.findByDestinoIgnoreCase(destino);
     }
 
     @GetMapping("/{id}")
@@ -43,24 +45,30 @@ public class ViagemController {
 
     @PutMapping("/{id}")
     public ResponseEntity<Viagem> atualizar(@PathVariable Long id,
-                            @RequestBody Viagem obj){
+                            @RequestBody Viagem viagem){
         Optional<Viagem> existe = repository.findById(id);
-        if(existe.isPresent()){
-            repository.save(obj);
-            return ResponseEntity.ok(obj);
-        }
-        else
+        if(existe.isEmpty()){
             return ResponseEntity.notFound().build();
+        }
+        if(existe.get().getDataSaida().isAfter(LocalDate.now())){
+            throw new IllegalArgumentException("Edição não permitida para viagens encerradas");
+        }
+        Viagem salva = repository.save(viagem);
+        return ResponseEntity.ok(salva);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> excluir(@PathVariable Long id){
         Optional<Viagem> existe = repository.findById(id);
         if(existe.isPresent()) {
+            List<Gasto> gastos = repository.findByGastos(id);
+            if(!gastos.isEmpty()){
+                throw new IllegalArgumentException("Existe gastos para a viagem informada");
+            }
             repository.deleteById(id);
             return ResponseEntity.ok().build();
+
         }
-        else
             return ResponseEntity.notFound().build();
     }
 
